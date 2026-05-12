@@ -46,7 +46,7 @@ class MousePoint:
         try:
             while self.term == False:
                 sleep(0.5)
-        except:
+        except Exception:
             pass
         
         self.ls.stop()

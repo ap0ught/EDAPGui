@@ -68,7 +68,7 @@ class Voice:
                 v_id_current = self.v_id
                 try:
                     engine.setProperty('voice', voices[v_id_current].id) 
-                except:
+                except IndexError:
                     print("Voice ID out of range")
                            
             try:
@@ -77,7 +77,7 @@ class Voice:
                 if words is not None:
                     engine.say(words)
                     engine.runAndWait()
-            except:
+            except queue.Empty:
                 pass
 
 

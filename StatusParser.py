@@ -202,7 +202,7 @@ class StatusParser:
                         if attempt > 1:
                             print(f"Status file attempt: {attempt}")
                         break
-                except Exception as e:
+                except Exception:
                     logger.debug('An error occurred reading Status.json file. File may be open.')
                     sleep(backoff)
                     logger.debug('Attempting to re-read Status.json file after delay.')

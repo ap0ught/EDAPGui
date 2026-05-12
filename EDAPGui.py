@@ -565,7 +565,7 @@ class APGui:
                 self.msgList.insert(tk.END, message)
                 self.msgList.yview(tk.END)
                 logger.info(msg)
-        except:
+        except Exception:
             # Store message in queue
             self.log_buffer.put(message)
             logger.info(msg)
@@ -688,7 +688,7 @@ class APGui:
 
             # Process config[] settings to update classes as necessary
             self.ed_ap.process_config_settings()
-        except:
+        except ValueError:
             messagebox.showinfo("Exception", "Invalid float entered")
 
     # ckbox.state:(ACTIVE | DISABLED)

@@ -77,7 +77,7 @@ class EDMesgServer:
                         self._generic_action(action.name)
 
                 sleep(0.1)
-        except:
+        except Exception:
             print("Shutting down provider.")
         finally:
             self._provider.close()

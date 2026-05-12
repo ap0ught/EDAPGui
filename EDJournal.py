@@ -414,7 +414,7 @@ class EDJournal:
             if 'FuelCapacity' in log and self.ship['type'] != 'TestBuggy':
                     try:
                         self.ship['fuel_capacity'] = log['FuelCapacity']['Main']
-                    except:
+                    except (KeyError, TypeError):
                         self.ship['fuel_capacity'] = log['FuelCapacity']
             if log_event == 'FuelScoop' and 'Total' in log:
                 self.ship['fuel_level'] = log['Total']
@@ -445,7 +445,7 @@ class EDJournal:
                     self.ship['target'] = log['Name']
                     try:
                             self.ship['jumps_remains'] = log['RemainingJumpsInRoute']
-                    except:
+                    except KeyError:
                         pass
                             #
                             #    'Log did not have jumps remaining. This happens most if you have less than .' +

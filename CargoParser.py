@@ -72,7 +72,7 @@ class CargoParser:
                 with open(self.file_path, 'r', encoding='utf-8') as file:
                     data = json.load(file)
                     break
-            except Exception as e:
+            except Exception:
                 logger.debug('An error occurred reading Cargo.json file. File may be open.')
                 sleep(backoff)
                 logger.debug('Attempting to re-read Cargo.json file after delay.')

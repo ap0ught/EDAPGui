@@ -73,7 +73,7 @@ class EDGraphicsSettings:
                 my_xml = file.read()
                 my_dict = xmltodict.parse(my_xml)
                 return my_dict
-        except OSError as e:
+        except OSError:
             logger.error(f"OS Error reading Elite Dangerous display settings file: {filename}.")
             raise Exception(f"OS Error reading Elite Dangerous display settings file: {filename}.")
 
