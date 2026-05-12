@@ -131,7 +131,7 @@ class APGui:
             'Modifier Key Delay': "Delay for key modifiers to ensure modifier is detected before/after the key.",
             'Default Hold Time': "Default hold time for a key press.",
             'Repeat Key Delay': "Delay between key press repeats.",
-            'Waypoint Repeat Count': "Number of times to repeat the waypoint route after completion (0 = no repeat).",
+            'Waypoint Repeat Count': "Number of additional times to repeat the waypoint route after first completion (0 = no repeat, 1 = run twice total).",
             'Waypoint Exit After Complete': "Exit to the main menu after the waypoint route completes.",
             'Safety Hook': "Stop all autopilot assists if the Elite Dangerous game window disappears (e.g., crash or manual close).",
         }
@@ -1162,7 +1162,7 @@ class APGui:
         cb_logout = ttk.Checkbutton(blk_ap, text='Automatic logout', variable=self.checkboxvar['Automatic logout'], command=(lambda field='Automatic logout': self.check_cb(field)))
         cb_logout.grid(row=6, column=0, columnspan=2, sticky=tk.W)
         self.checkboxvar['Safety Hook'] = tk.BooleanVar()
-        cb_safety = ttk.Checkbutton(blk_ap, text='Safety Hook (stop if game closes)', variable=self.checkboxvar['Safety Hook'], command=(lambda field='Safety Hook': self.check_cb(field)))
+        cb_safety = ttk.Checkbutton(blk_ap, text='Stop autopilot if Elite Dangerous closes', variable=self.checkboxvar['Safety Hook'], command=(lambda field='Safety Hook': self.check_cb(field)))
         cb_safety.grid(row=7, column=0, columnspan=2, sticky=tk.W)
 
         # buttons settings block

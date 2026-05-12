@@ -248,6 +248,9 @@ class Screen:
         target_aspect = 16 / 9
         current_aspect = self.raw_screen_width / self.raw_screen_height if self.raw_screen_height > 0 else target_aspect
 
+        if self.raw_screen_height == 0:
+            logger.warning('Screen height is 0 — screen dimensions may not have been detected. Using defaults.')
+
         if abs(current_aspect - target_aspect) < 0.01:
             # Already 16:9 (within tolerance)
             self.screen_width = self.raw_screen_width
