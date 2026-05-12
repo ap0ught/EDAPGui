@@ -6,7 +6,6 @@ description: How to calibrate EDAPGui screen regions, compass, and target templa
 
 # EDAPGui Calibration
 {: .no_toc }
-
 ## Table of contents
 {: .no_toc .text-delta }
 
@@ -22,7 +21,7 @@ Calibration is performed from the Calibration tab:
 ![Calibration.png]({{ "/assets/images/Calibration.png" | relative_url }})
 
 ## Region Calibration
-This performs calibration of certain regions of the screen that may change bsed on resolution and FOV settings. It may be required to recalibrate if either of these settings change.
+This performs calibration of certain regions of the screen that may change based on resolution and FOV settings. It may be required to recalibrate if either of these settings change.
 
 ![CalibrationRegionCalibration.png]({{ "/assets/images/CalibrationRegionCalibration.png" | relative_url }})
 

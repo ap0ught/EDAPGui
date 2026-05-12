@@ -5,7 +5,7 @@ description: Waypoint file format, common actions, and trading reference.
 ---
 
 # Waypoints
-Waypoints are Systems that are captured in a waypoints.json file and read and processed by this Autopilot.  An example waypoint file is below:
+Waypoints are Systems that are captured in a waypoints.json file and read and processed by this Autopilot. An example waypoint file is below:
 
 ```py
 {

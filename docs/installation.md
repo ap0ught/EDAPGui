@@ -100,13 +100,13 @@ Complete these steps the first time you run EDAPGui:
 4. **In-system test** (SC Assist):
    - In ED, use the Left Panel to select a local target.
    - Enable **SC Assist** in EDAPGui, or press the **Ins** key.
-   - The ship will undock (if docked), jump to supercruise, manoeuvre to the target, and attempt docking.
+   - The ship will undock (if docked), jump to supercruise, maneuver to the target, and attempt docking.
    - Any flight issues → check [ship tuning](roll-pitch-yaw).
 
 5. **Out-of-system test** (FSD Assist):
    - In ED, use the Galaxy Map to select a target system.
    - Enable **FSD Assist** in EDAPGui, or press the **Home** key.
-   - The ship will undock (if docked), jump to supercruise, manoeuvre to the target, perform an FSD jump, fuel-scoop as necessary, and either stop or continue to the next destination.
+   - The ship will undock (if docked), jump to supercruise, maneuver to the target, perform an FSD jump, fuel-scoop as necessary, and either stop or continue to the next destination.
    - Any flight issues → check [ship tuning](roll-pitch-yaw).
 
 ---
