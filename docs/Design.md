@@ -1,4 +1,9 @@
-  
+---
+title: Design & Architecture
+nav_order: 9
+description: High-level design overview of the EDAPGui autopilot flows.
+---
+
 # Approach
 ## FSD Assist FLow
 * Leave space station if docked.

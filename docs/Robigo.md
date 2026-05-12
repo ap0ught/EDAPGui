@@ -1,3 +1,8 @@
+---
+title: Robigo Mines
+nav_order: 8
+description: How to use the Robigo Mines passenger mission loop assist.
+---
 
 # Robigo Mines Passenger Loop
 

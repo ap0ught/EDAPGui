@@ -1,3 +1,9 @@
+---
+title: Roll, Pitch, Yaw Tuning
+nav_order: 5
+description: How to determine and tune the Roll, Pitch, and Yaw rates for your ship.
+---
+
 # Roll, Pitch, Yaw (RPY)
 The values for Pitch and Roll are critical for proper Autopilot behavior. Yaw is also used, but to a lesser degree.
 Each ship type will have different RPY values that need to be determined using the instructions below. Once the RPY

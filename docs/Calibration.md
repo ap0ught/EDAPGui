@@ -1,14 +1,30 @@
+---
+title: Calibration
+nav_order: 4
+description: How to calibrate EDAPGui screen regions, compass, and target template scaling.
+---
+
 # EDAPGui Calibration
+{: .no_toc }
+
+## Table of contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
+
+---
+
 This document explains how to perform calibration for the
 Elite Dangerous Autopilot (GUI) version. 
 Calibration is performed from the Calibration tab:
 
-![Calibration.png](../screen/Calibration.png)
+![Calibration.png]({{ "/assets/images/Calibration.png" | relative_url }})
 
 ## Region Calibration
 This performs calibration of certain regions of the screen that may change bsed on resolution and FOV settings. It may be required to recalibrate if either of these settings change.
 
-![CalibrationRegionCalibration.png](../screen/CalibrationRegionCalibration.png)
+![CalibrationRegionCalibration.png]({{ "/assets/images/CalibrationRegionCalibration.png" | relative_url }})
 
 The process is generally the same for each region:
 1. Select a region from the dropdown list. The region will be highlighted on the screen.
@@ -25,7 +41,7 @@ To further aid calibration, the following give examples of the correct region. N
 1. Open the Codex from right hand cockpit panel.
 2. Draw a rectangle from the top left corner of the codex 'book' to the end of the line above the exit button at the bottom right.
 
-![CalibrationCodex.png](../screen/CalibrationCodex.png)
+![CalibrationCodex.png]({{ "/assets/images/CalibrationCodex.png" | relative_url }})
 
 ### Commodities Market
 NOTE: This is calculated from the Codex screen. It is included as a verification that the calculated region is correct.
@@ -37,42 +53,42 @@ NOTE: This is calculated from the Codex screen. It is included as a verification
 1. Open Galaxy Map.
 2. The rectangle should extend from the top left corner of the cartographics logo to the right of the right hand map icons and the bottom of the route box at the bottom.
 
-![CalibrationGalaxyMap.png](../screen/CalibrationGalaxyMap.png)
+![CalibrationGalaxyMap.png]({{ "/assets/images/CalibrationGalaxyMap.png" | relative_url }})
 
 ### System Map
 NOTE: This is calculated from the Codex screen. It is included as a verification that the calculated region is correct.
 1. Open System Map.
 2. The rectangle should extend from the top left corner of the cartographics logo to the right of the right hand map icons and the bottom of the route box at the bottom.
 
-![CalibrationSystemMap.png](../screen/CalibrationSystemMap.png)
+![CalibrationSystemMap.png]({{ "/assets/images/CalibrationSystemMap.png" | relative_url }})
 
 ### Station Services
 1. Open Station Services.
 2. Draw a rectangle from the top left corner of the left panel to the bottom right of the right panel, above the line that sits above the exit button.
 
-![CalibrationStationServices.png](../screen/CalibrationStationServices.png)
+![CalibrationStationServices.png]({{ "/assets/images/CalibrationStationServices.png" | relative_url }})
 
 ### Navigation Panel
 Note: Appears the Nav Panel changes per ship, so increase the region for each new ship and eventually all ships will be covered. It should work out okay and will prevent having to redo every time you switch ships.
 1. Open Navigation Panel.
 2. Draw a rectangle from the top left corner of the nav panel to the bottom right corner.
 
-![CalibrationNavPanel1.png](../screen/CalibrationNavPanel1.png)
-![CalibrationNavPanel2.png](../screen/CalibrationNavPanel2.png)
+![CalibrationNavPanel1.png]({{ "/assets/images/CalibrationNavPanel1.png" | relative_url }})
+![CalibrationNavPanel2.png]({{ "/assets/images/CalibrationNavPanel2.png" | relative_url }})
 
 ### Status Panel
 Note: Appears the Nav Panel changes per ship, so increase the region for each new ship and eventually all ships will be covered. It should work out okay and will prevent having to redo every time you switch ships.
 1. Open Internal Status Panel (right hand panel).
 2. Draw a rectangle from the top left corner of the nav panel to the bottom right corner.
 
-![CalibrationStsPanel1.png](../screen/CalibrationStsPanel1.png)
-![CalibrationStsPanel2.png](../screen/CalibrationStsPanel2.png)
+![CalibrationStsPanel1.png]({{ "/assets/images/CalibrationStsPanel1.png" | relative_url }})
+![CalibrationStsPanel2.png]({{ "/assets/images/CalibrationStsPanel2.png" | relative_url }})
 
 ## Compass and Target Calibration
 
 This document explains how to perform calibration for the Elite Dangerous Autopilot (GUI) version.  You will need to perform this calibration step if the behavior of EDAPGui on your system is endless Pitching up when activating the FSD Assist.  For some user systems this calibration is needed to determine the proper scaling value for the images in the template directory.  These are dependant on screen/game resolution.   The template images were created on a 3440x1440 resolution monitor and require scaling for other target computers.
 
-![CalibrationCompassAndTarget.png](../screen/CalibrationCompassAndTarget.png)
+![CalibrationCompassAndTarget.png]({{ "/assets/images/CalibrationCompassAndTarget.png" | relative_url }})
 
 ## Compass Calibration
 Not all ships have the same size compass, so it is necessary to calibrate the compass of each of your ships to take into account the resolution of the screen and FOV. Once saved, the correct scaling will automatically be loaded when changing ships.
@@ -94,7 +110,7 @@ Also see:  HOWTO-RollPitchYaw.md on how to adjust your autopilot performance whi
     * Target system selected
     * Align to the target, as show in this screenshot:<br>
 
-![screen-cap-calibrate.png](../screen/screen-cap-calibrate.png)
+![screen-cap-calibrate.png]({{ "/assets/images/screen-cap-calibrate.png" | relative_url }})
 
 # To run the calibration (Target or Compass)
 * Start EDAPGui
