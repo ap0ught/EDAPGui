@@ -131,6 +131,9 @@ class APGui:
             'Modifier Key Delay': "Delay for key modifiers to ensure modifier is detected before/after the key.",
             'Default Hold Time': "Default hold time for a key press.",
             'Repeat Key Delay': "Delay between key press repeats.",
+            'Waypoint Repeat Count': "Number of times to repeat the waypoint route after completion (0 = no repeat).",
+            'Waypoint Exit After Complete': "Exit to the main menu after the waypoint route completes.",
+            'Safety Hook': "Stop all autopilot assists if the Elite Dangerous game window disappears (e.g., crash or manual close).",
         }
 
         self.gui_loaded = False
@@ -176,6 +179,7 @@ class APGui:
         self.checkboxvar['Debug OCR'].set(self.ed_ap.config['DebugOCR'])
         self.checkboxvar['Debug Images'].set(self.ed_ap.config['DebugImages'])
         self.checkboxvar['AFKCombat AttackAtWill'].set(self.ed_ap.config['AFKCombat_AttackAtWill'])
+        self.checkboxvar['Safety Hook'].set(self.ed_ap.config.get('SafetyHookEnabled', True))
 
         self.radiobuttonvar['dss_button'].set(self.ed_ap.config['DSSButton'])
 
@@ -209,6 +213,7 @@ class APGui:
         self.entries['keys']['Modifier Key Delay'].delete(0, tk.END)
         self.entries['keys']['Default Hold Time'].delete(0, tk.END)
         self.entries['keys']['Repeat Key Delay'].delete(0, tk.END)
+        self.entries['waypoint']['Waypoint Repeat Count'].delete(0, tk.END)
 
         self.entries['ship']['PitchRate'].insert(0, float(self.ed_ap.pitchrate))
         self.entries['ship']['RollRate'].insert(0, float(self.ed_ap.rollrate))
@@ -238,6 +243,8 @@ class APGui:
         self.entries['keys']['Modifier Key Delay'].insert(0, float(self.ed_ap.config['Key_ModDelay']))
         self.entries['keys']['Default Hold Time'].insert(0, float(self.ed_ap.config['Key_DefHoldTime']))
         self.entries['keys']['Repeat Key Delay'].insert(0, float(self.ed_ap.config['Key_RepeatDelay']))
+        self.entries['waypoint']['Waypoint Repeat Count'].insert(0, int(self.ed_ap.config.get('WaypointRepeatCount', 0)))
+        self.checkboxvar['Waypoint Exit After Complete'].set(self.ed_ap.config.get('WaypointExitAfterComplete', False))
 
         if self.ed_ap.config['LogDEBUG']:
             self.radiobuttonvar['debug_mode'].set("Debug")
@@ -685,6 +692,9 @@ class APGui:
             self.ed_ap.config['Key_ModDelay'] = float(self.entries['keys']['Modifier Key Delay'].get())
             self.ed_ap.config['Key_DefHoldTime'] = float(self.entries['keys']['Default Hold Time'].get())
             self.ed_ap.config['Key_RepeatDelay'] = float(self.entries['keys']['Repeat Key Delay'].get())
+            self.ed_ap.config['WaypointRepeatCount'] = int(self.entries['waypoint']['Waypoint Repeat Count'].get())
+            self.ed_ap.config['WaypointExitAfterComplete'] = self.checkboxvar['Waypoint Exit After Complete'].get()
+            self.ed_ap.config['SafetyHookEnabled'] = self.checkboxvar['Safety Hook'].get()
 
             # Process config[] settings to update classes as necessary
             self.ed_ap.process_config_settings()
@@ -870,6 +880,12 @@ class APGui:
 
         if field == 'Debug Images':
             self.ed_ap.debug_images = self.checkboxvar['Debug Images'].get()
+
+        if field == 'Safety Hook':
+            self.ed_ap.config['SafetyHookEnabled'] = self.checkboxvar['Safety Hook'].get()
+
+        if field == 'Waypoint Exit After Complete':
+            self.ed_ap.config['WaypointExitAfterComplete'] = self.checkboxvar['Waypoint Exit After Complete'].get()
 
     def makeform(self, win, ftype, fields, r: int = 0, inc: float = 1, r_from: float = 0, rto: float = 1000):
         entries = {}
@@ -1145,6 +1161,9 @@ class APGui:
         self.checkboxvar['Automatic logout'] = tk.BooleanVar()
         cb_logout = ttk.Checkbutton(blk_ap, text='Automatic logout', variable=self.checkboxvar['Automatic logout'], command=(lambda field='Automatic logout': self.check_cb(field)))
         cb_logout.grid(row=6, column=0, columnspan=2, sticky=tk.W)
+        self.checkboxvar['Safety Hook'] = tk.BooleanVar()
+        cb_safety = ttk.Checkbutton(blk_ap, text='Safety Hook (stop if game closes)', variable=self.checkboxvar['Safety Hook'], command=(lambda field='Safety Hook': self.check_cb(field)))
+        cb_safety.grid(row=7, column=0, columnspan=2, sticky=tk.W)
 
         # buttons settings block
         blk_buttons = ttk.LabelFrame(blk_settings, text="BUTTONS", padding=(10, 5))
@@ -1204,6 +1223,17 @@ class APGui:
         self.checkboxvar['AFKCombat AttackAtWill'] = tk.BooleanVar()
         cb_enable = ttk.Checkbutton(blk_afk_combat, text='Command SLF to Attack At Will', variable=self.checkboxvar['AFKCombat AttackAtWill'], command=(lambda field='AFKCombat AttackAtWill': self.check_cb(field)))
         cb_enable.grid(row=0, column=0, columnspan=2, sticky=tk.W)
+
+        # Waypoint settings block
+        blk_waypoint_settings = ttk.LabelFrame(blk_settings, text="WAYPOINT", padding=(10, 5))
+        blk_waypoint_settings.grid(row=4, column=1, padx=2, pady=2, sticky="NSEW")
+        waypoint_entry_fields = ('Waypoint Repeat Count',)
+        self.entries['waypoint'] = self.makeform(blk_waypoint_settings, FORM_TYPE_SPINBOX, waypoint_entry_fields, 0, 1.0, 0.0, 100.0)
+        self.checkboxvar['Waypoint Exit After Complete'] = tk.BooleanVar()
+        cb_wp_exit = ttk.Checkbutton(blk_waypoint_settings, text='Exit to menu after complete',
+                                     variable=self.checkboxvar['Waypoint Exit After Complete'],
+                                     command=(lambda field='Waypoint Exit After Complete': self.check_cb(field)))
+        cb_wp_exit.grid(row=1, column=0, columnspan=2, sticky=tk.W)
 
         # settings button block
         blk_settings_buttons = ttk.Frame(page1)
