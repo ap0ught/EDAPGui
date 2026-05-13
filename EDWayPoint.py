@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from time import sleep
 from CargoParser import CargoParser
 from EDAP_data import *
@@ -11,6 +12,13 @@ import json
 from MarketParser import MarketParser
 from MousePt import MousePoint
 from pathlib import Path
+
+
+def get_resource_path(relative_path: str) -> str:
+    """Get absolute path to resource, works for dev and PyInstaller bundles."""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_path)
 
 """
 File: EDWayPoint.py    
@@ -70,11 +78,11 @@ class EDWayPoint:
         self.ap.ap_ckb('log', f"Waypoint file is invalid. Check log file for details.")
         return False
 
-    def read_waypoints(self, filename='./waypoints/waypoints.json'):
+    def read_waypoints(self, filename='waypoints/waypoints.json'):
         s = None
         self.ap.config['WaypointFilepath'] = filename
         try:
-            with open(filename, "r") as fp:
+            with open(get_resource_path(filename), "r") as fp:
                 s = json.load(fp)
 
             # Perform any checks on the data returned
@@ -146,19 +154,19 @@ class EDWayPoint:
 
         return s
 
-    def write_waypoints(self, data, filename='./waypoints/waypoints.json'):
+    def write_waypoints(self, data, filename='waypoints/waypoints.json'):
         if data is None:
             data = self.waypoints
         try:
             self.ap.config['WaypointFilepath'] = filename
-            with open(filename, "w") as fp:
+            with open(get_resource_path(filename), "w") as fp:
                 json.dump(data, fp, indent=4)
         except Exception as e:
             logger.warning("EDWayPoint.py write_waypoints error:" + str(e))
 
     def mark_waypoint_complete(self, key):
         self.waypoints[key]['Completed'] = True
-        self.write_waypoints(data=None, filename='./waypoints/' + Path(self.filename).name)
+        self.write_waypoints(data=None, filename='waypoints/' + Path(self.filename).name)
 
     def get_waypoint(self) -> tuple[str, dict] | tuple[None, None]:
         """ Returns the next waypoint list or None if we are at the end of the waypoints.
@@ -202,7 +210,7 @@ class EDWayPoint:
                 # Or log a warning if the structure is unexpected
                 logger.warning(f"Waypoint {tkey} missing 'Completed' key during reset.")
             self.step = 0
-        self.write_waypoints(data=None, filename='./waypoints/' + Path(self.filename).name)
+        self.write_waypoints(data=None, filename='waypoints/' + Path(self.filename).name)
         self.log_stats()
 
     def log_stats(self):
@@ -355,7 +363,7 @@ class EDWayPoint:
                             sell_commodities[key] = sell_commodities[key] - qty
 
                 # Save changes
-                self.write_waypoints(data=None, filename='./waypoints/' + Path(self.filename).name)
+                self.write_waypoints(data=None, filename='waypoints/' + Path(self.filename).name)
 
             sleep(1)
 
@@ -454,7 +462,7 @@ class EDWayPoint:
                         global_buy_commodities[key] = qty_to_buy - qty
 
                 # Save changes
-                self.write_waypoints(data=None, filename='./waypoints/' + Path(self.filename).name)
+                self.write_waypoints(data=None, filename='waypoints/' + Path(self.filename).name)
 
             sleep(1.5)  # give time to popdown
             # Go to ship view
@@ -471,6 +479,11 @@ class EDWayPoint:
         self.step = 0  # start at first waypoint
         self.ap.ap_ckb('log', "Waypoint file: " + str(Path(self.filename).name))
         self.reset_stats()
+
+        # Get repeat count and exit-after-complete settings
+        repeat_count = self.ap.config.get('WaypointRepeatCount', 0)
+        exit_after_complete = self.ap.config.get('WaypointExitAfterComplete', False)
+        repeat_iteration = 0
 
         # Loop until complete, or error
         _abort = False
@@ -503,6 +516,14 @@ class EDWayPoint:
 
             if dest_key is None:
                 self.ap.ap_ckb('log+vce', "Waypoint list has been completed.")
+
+                # Check if we should repeat the route
+                if repeat_count > 0 and repeat_iteration < repeat_count:
+                    repeat_iteration += 1
+                    self.ap.ap_ckb('log+vce',
+                                   f"Repeating waypoint route (iteration {repeat_iteration}/{repeat_count}).")
+                    self.mark_all_waypoints_not_complete()
+                    continue
                 break
 
             # Is this a new waypoint?
@@ -658,6 +679,18 @@ class EDWayPoint:
         if not _abort:
             self.ap.ap_ckb('log+vce',
                            "Waypoint Route Complete, total distance jumped: " + str(self.ap.total_dist_jumped) + "LY")
+
+            # Exit to main menu if configured
+            if exit_after_complete:
+                self.ap.ap_ckb('log+vce', "Exiting to main menu as configured.")
+                sleep(2)
+                try:
+                    self.ap.keys.send('ExitToMainMenu')
+                except Exception as e:
+                    logger.warning(f"Could not send ExitToMainMenu key: {e}")
+                    self.ap.ap_ckb('log', "Warning: ExitToMainMenu key binding not found. "
+                                          "Add 'ExitToMainMenu' key binding in Elite Dangerous settings.")
+
             self.ap.update_ap_status("Idle")
         else:
             self.ap.ap_ckb('log+vce', "Waypoint Route was aborted.")

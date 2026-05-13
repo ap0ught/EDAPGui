@@ -1,5 +1,6 @@
 import math
 import os
+import sys
 import traceback
 from datetime import timedelta
 from enum import Enum
@@ -135,6 +136,9 @@ class EDAutopilot:
             "Debug_ShowCompassOverlay": False, # For test
             "Debug_ShowTargetOverlay": False, # For test
             "GalMap_SystemSelectDelay": 0.5,  # Delay selecting the system when in galaxy map
+            "WaypointRepeatCount": 0,          # Number of times to repeat the waypoint route (0 = no repeat)
+            "WaypointExitAfterComplete": False, # Exit to main menu after waypoint route completes
+            "SafetyHookEnabled": True,          # Stop all assists if Elite Dangerous window disappears
         }
         # NOTE!!! When adding a new config value above, add the same after read_config() to set
         # a default value or an error will occur reading the new value!
@@ -219,6 +223,12 @@ class EDAutopilot:
                 cnf['Debug_ShowTargetOverlay'] = False # For test
             if 'GalMap_SystemSelectDelay' not in cnf:
                 cnf['GalMap_SystemSelectDelay'] = 0.5
+            if 'WaypointRepeatCount' not in cnf:
+                cnf['WaypointRepeatCount'] = 0
+            if 'WaypointExitAfterComplete' not in cnf:
+                cnf['WaypointExitAfterComplete'] = False
+            if 'SafetyHookEnabled' not in cnf:
+                cnf['SafetyHookEnabled'] = True
             if 'FCDepartureAngle' not in cnf:
                 cnf['FCDepartureAngle'] = 90.0
             if 'OCDepartureAngle' not in cnf:
@@ -2990,6 +3000,16 @@ class EDAutopilot:
                 self.get_nav_offset(self.scrReg, True)
             if self.debug_show_target_overlay:
                 self.get_target_offset(self.scrReg, True)
+
+            # Safety hook: check if Elite Dangerous window still exists
+            if self.config.get('SafetyHookEnabled', True):
+                if (self.fsd_assist_enabled or self.sc_assist_enabled or self.waypoint_assist_enabled
+                        or self.robigo_assist_enabled or self.afk_combat_assist_enabled
+                        or self.dss_assist_enabled or self.single_waypoint_enabled):
+                    if not Screen.elite_window_exists():
+                        logger.warning("Safety hook: Elite Dangerous window not found. Stopping all assists.")
+                        self.ap_ckb('log+vce', "Safety hook: Elite Dangerous window not found. Stopping all assists.")
+                        self.ap_ckb('stop_all_assists')
 
             # TODO - Enable for test
             # self.start_sco_monitoring()
