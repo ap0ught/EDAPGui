@@ -8,8 +8,8 @@ def get_resource_path(relative_path: str) -> str:
     if hasattr(sys, '_MEIPASS'):
         # Running as PyInstaller bundle
         return os.path.join(sys._MEIPASS, relative_path)
-    # Running as normal Python script
-    return os.path.join(os.path.abspath("."), relative_path)
+    # Running as normal Python script - resolve relative to this file's directory
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_path)
 
 
 class LocalizationManager:

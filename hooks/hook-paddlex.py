@@ -1,7 +1,7 @@
 # PyInstaller hook for paddlex
 # This ensures all paddlex dependencies and data files are collected
 
-from PyInstaller.utils.hooks import collect_all, collect_submodules, collect_data_files
+from PyInstaller.utils.hooks import collect_all, collect_submodules
 
 # Collect all paddlex components
 datas, binaries, hiddenimports = collect_all('paddlex')

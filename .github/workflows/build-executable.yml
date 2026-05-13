@@ -102,7 +102,7 @@ jobs:
 
         # Update the runtime hook with the actual version
         $hookFile = "hooks\runtime_hook_paddlex.py"
-        (Get-Content $hookFile) -replace "f\.write\('.*'\)", "f.write('$version')" | Set-Content $hookFile
+        (Get-Content $hookFile) -replace "PADDLEX_VERSION = '.*'", "PADDLEX_VERSION = '$version'" | Set-Content $hookFile
         echo "Updated runtime hook with version: $version"
 
     - name: Build executable

@@ -2,129 +2,141 @@
 # This hook MUST run BEFORE paddlex is imported anywhere
 #
 # Strategy:
-# 1. Use an import hook to intercept paddlex.utils.deps and patch it after loading
+# 1. Use a PEP 451-compliant import hook to intercept paddlex.utils.deps and patch it after loading
 # 2. Create the .version file for paddlex
 # 3. Set environment variables to signal we're in a bundled app
 #
 # IMPORTANT: We must NOT inject fake parent modules (paddlex, paddlex.utils)
 # as this would prevent the real modules from loading!
 
+import importlib
+import importlib.abc
+import importlib.machinery
+import importlib.util
 import os
 import sys
-import types
 
 
 def setup_import_hook():
     """
-    Set up an import hook that patches paddlex.utils.deps when it's loaded.
+    Set up a PEP 451-compliant import hook that patches paddlex.utils.deps when it's loaded.
     This allows the real paddlex package to load normally, but patches
     the dependency checker to skip runtime checks.
     """
     if not hasattr(sys, '_MEIPASS'):
         return  # Only needed in PyInstaller bundle
 
-    class PaddlexDepsImportHook:
+    class PaddlexDepsLoader(importlib.abc.Loader):
+        """PEP 451 loader that loads paddlex.utils.deps and then patches it."""
+
+        def __init__(self, original_spec):
+            self._original_spec = original_spec
+
+        def create_module(self, spec):
+            # Use default semantics (return None to get a new module object)
+            return None
+
+        def exec_module(self, module):
+            # Execute the real module using its original loader
+            self._original_spec.loader.exec_module(module)
+            # Now patch the loaded module
+            _patch_deps_module(module)
+            print(f"Runtime hook: Patched {module.__name__}")
+
+    class PaddlexDepsFinder(importlib.abc.MetaPathFinder):
         """
-        Import hook that patches paddlex.utils.deps after it loads.
+        PEP 451-compliant meta path finder that intercepts paddlex.utils.deps
+        and wraps it with a patching loader.
         """
         _patched = False
 
-        def find_module(self, fullname, path=None):
-            # Intercept paddlex.utils.deps import
-            if fullname == 'paddlex.utils.deps' and not self._patched:
-                return self
+        def find_spec(self, fullname, path, target=None):
+            if fullname != 'paddlex.utils.deps' or self._patched:
+                return None
+
+            # Temporarily remove ourselves to avoid recursion
+            sys.meta_path.remove(self)
+            try:
+                original_spec = importlib.util.find_spec(fullname)
+            except (ModuleNotFoundError, ValueError):
+                original_spec = None
+            finally:
+                sys.meta_path.insert(0, self)
+
+            if original_spec is None or original_spec.loader is None:
+                # Return a spec backed by a stub loader
+                stub_loader = _StubDepsLoader()
+                return importlib.machinery.ModuleSpec(fullname, stub_loader)
+
+            self._patched = True
+            return importlib.machinery.ModuleSpec(
+                fullname,
+                PaddlexDepsLoader(original_spec),
+                origin=original_spec.origin,
+            )
+
+    class _StubDepsLoader(importlib.abc.Loader):
+        """Fallback loader that creates a minimal stub for paddlex.utils.deps."""
+
+        def create_module(self, spec):
             return None
 
-        def load_module(self, fullname):
-            # If already in sys.modules and patched, return it
-            if fullname in sys.modules and self._patched:
-                return sys.modules[fullname]
+        def exec_module(self, module):
+            _populate_stub_deps_module(module)
+            print(f"Runtime hook: Created stub for {module.__name__}")
 
-            # Remove this finder temporarily to allow normal import
-            if self in sys.meta_path:
-                sys.meta_path.remove(self)
+    # Install the finder at the front of meta_path
+    sys.meta_path.insert(0, PaddlexDepsFinder())
+    print("Runtime hook: Installed paddlex.utils.deps import hook (PEP 451)")
 
+
+def _patch_deps_module(module):
+    """Patch a loaded paddlex.utils.deps module so all dependency checks are no-ops."""
+    module.require_extra = lambda *a, **kw: None
+
+    if hasattr(module, 'check_deps'):
+        module.check_deps = lambda *a, **kw: None
+    if hasattr(module, 'is_dep_available'):
+        module.is_dep_available = lambda *a, **kw: True
+    if hasattr(module, 'ensure_deps'):
+        module.ensure_deps = lambda *a, **kw: None
+
+    # Patch _wrapper if it exists (it is a decorator that calls require_extra)
+    if hasattr(module, '_wrapper'):
+        original_wrapper = module._wrapper
+
+        def patched_wrapper(*args, **kwargs):
+            """Patched wrapper that silently ignores DependencyError."""
             try:
-                import importlib
-                module = importlib.import_module(fullname)
+                return original_wrapper(*args, **kwargs)
+            except Exception as e:
+                error_type = type(e).__name__
+                error_msg = str(e)
+                if 'DependencyError' in error_type or 'requires additional dependencies' in error_msg:
+                    return None
+                raise
 
-                # Patch the module functions
-                self._patch_module(module)
-                self._patched = True
+        module._wrapper = patched_wrapper
+        print("Runtime hook: Patched _wrapper function")
 
-                print(f"Runtime hook: Patched {fullname}")
-                return module
-            except ImportError as e:
-                print(f"Runtime hook: Could not import {fullname}: {e}")
-                # Create a stub module if import fails
-                module = self._create_stub_module(fullname)
-                self._patched = True
-                return module
-            finally:
-                # Re-add this finder for any future imports
-                if self not in sys.meta_path:
-                    sys.meta_path.insert(0, self)
 
-        def _patch_module(self, module):
-            """Patch the deps module to skip dependency checks."""
-            def patched_require_extra(*args, **kwargs):
-                """No-op: Dependencies are bundled."""
-                return None  # Never raise DependencyError
+def _populate_stub_deps_module(module):
+    """Populate a fresh module object as a minimal paddlex.utils.deps stub."""
+    module.require_extra = lambda *a, **kw: None
+    module.check_deps = lambda *a, **kw: None
+    module.is_dep_available = lambda *a, **kw: True
+    module.ensure_deps = lambda *a, **kw: None
+    module.get_extra_deps = lambda *a, **kw: {}
 
-            module.require_extra = patched_require_extra
+    class DependencyError(Exception):
+        pass
 
-            # Patch other functions if they exist
-            if hasattr(module, 'check_deps'):
-                module.check_deps = lambda *a, **kw: None
-            if hasattr(module, 'is_dep_available'):
-                module.is_dep_available = lambda *a, **kw: True
-            if hasattr(module, 'ensure_deps'):
-                module.ensure_deps = lambda *a, **kw: None
-
-            # Patch _wrapper if it exists - this is the decorator that calls require_extra
-            if hasattr(module, '_wrapper'):
-                original_wrapper = module._wrapper
-
-                def patched_wrapper(*args, **kwargs):
-                    """Patched wrapper that catches DependencyError."""
-                    try:
-                        return original_wrapper(*args, **kwargs)
-                    except Exception as e:
-                        # Check if it's a DependencyError
-                        error_type = type(e).__name__
-                        error_msg = str(e)
-                        if 'DependencyError' in error_type or 'requires additional dependencies' in error_msg:
-                            # Silently ignore - dependencies are bundled
-                            return None
-                        raise
-                module._wrapper = patched_wrapper
-                print("Runtime hook: Patched _wrapper function")
-
-        def _create_stub_module(self, fullname):
-            """Create a stub module if the real one can't be imported."""
-            print(f"Runtime hook: Creating stub module for {fullname}")
-
-            stub = types.ModuleType(fullname)
-            stub.require_extra = lambda *a, **kw: None
-            stub.check_deps = lambda *a, **kw: None
-            stub.is_dep_available = lambda *a, **kw: True
-            stub.ensure_deps = lambda *a, **kw: None
-
-            class DependencyError(Exception):
-                pass
-            stub.DependencyError = DependencyError
-
-            sys.modules[fullname] = stub
-            return stub
-
-    # Install the import hook at the start of meta_path
-    sys.meta_path.insert(0, PaddlexDepsImportHook())
-    print("Runtime hook: Installed paddlex.utils.deps import hook")
+    module.DependencyError = DependencyError
 
 
 def ensure_paddlex_version():
     """Create the paddlex .version file if it doesn't exist."""
-    version = '3.3.10'  # Will be updated by build script
+    PADDLEX_VERSION = '3.3.10'  # Updated by CI build script
 
     if not hasattr(sys, '_MEIPASS'):
         return  # Not needed when running normally
@@ -144,8 +156,8 @@ def ensure_paddlex_version():
     if not os.path.exists(version_file):
         try:
             with open(version_file, 'w', encoding='utf-8') as f:
-                f.write(version)
-            print(f"Runtime hook: Created {version_file} with version {version}")
+                f.write(PADDLEX_VERSION)
+            print(f"Runtime hook: Created {version_file} with version {PADDLEX_VERSION}")
         except Exception as e:
             print(f"Warning: Could not create .version file: {e}")
 
@@ -158,7 +170,7 @@ def set_environment_flags():
         os.environ['PYINSTALLER_BUNDLED'] = '1'
 
 
-# Run all setup functions immediately when this hook is loaded
+# Run all setup functions immediately when this hook is loaded.
 # Order matters!
 set_environment_flags()
 setup_import_hook()
